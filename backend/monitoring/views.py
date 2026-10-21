@@ -3,12 +3,14 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .permissions import IsAnalystOrAdmin
 from .detection import analyze_event
 from .models import SecurityAlert, SecurityEvent
 from .serializers import SecurityAlertSerializer, SecurityEventSerializer
 
 
 class SecurityEventListCreateView(generics.ListCreateAPIView):
+    permission_classes = [IsAnalystOrAdmin]
     serializer_class = SecurityEventSerializer
     queryset = SecurityEvent.objects.all()
     # Demo only. We'll add authentication and permissions next.
@@ -28,11 +30,14 @@ class SecurityEventListCreateView(generics.ListCreateAPIView):
 
 
 class SecurityAlertListView(generics.ListAPIView):
+    permission_classes = [IsAnalystOrAdmin]
     serializer_class = SecurityAlertSerializer
     queryset = SecurityAlert.objects.all()
 
 
 class SecurityAlertStatusUpdateView(APIView):
+    permission_classes = [IsAnalystOrAdmin]
+    
     def patch(self, request, pk):
         try:
             alert = SecurityAlert.objects.get(pk=pk)
