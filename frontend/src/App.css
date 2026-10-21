@@ -470,3 +470,53 @@ td small {
   background: #111927;
   color: #e5e7eb;
 }
+
+/* Security analytics charts */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.chart-panel {
+  min-width: 0;
+  padding: 20px;
+}
+
+.chart-panel .panel-heading {
+  margin-bottom: 12px;
+}
+
+.chart-panel .panel-heading h2 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.chart-panel .panel-heading p {
+  margin: 0;
+}
+
+.chart-container {
+  width: 100%;
+  height: 260px;
+  min-width: 0;
+}
+
+.event-type-panel {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+  .charts-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .event-type-panel {
+    grid-column: auto;
+  }
+
+  .chart-container {
+    height: 240px;
+  }
+}
