@@ -64,3 +64,33 @@ class SecurityAlert(models.Model):
 
     def __str__(self):
         return f"{self.severity}: {self.title}"
+class AuditLog(models.Model):
+    class Action(models.TextChoices):
+        EVENT_CREATED = "EVENT_CREATED", "Event Created"
+        ALERT_STATUS_CHANGED = (
+            "ALERT_STATUS_CHANGED",
+            "Alert Status Changed",
+        )
+
+    user = models.ForeignKey(
+        "auth.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    action = models.CharField(
+        max_length=30,
+        choices=Action.choices,
+    )
+    description = models.TextField()
+    ip_address = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.action} - {self.created_at}"

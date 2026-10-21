@@ -3,7 +3,7 @@ from rest_framework import serializers
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import validate_ipv46_address
 
-from .models import SecurityAlert, SecurityEvent
+from .models import AuditLog,SecurityAlert, SecurityEvent
 
 
 class SecurityEventSerializer(serializers.ModelSerializer):
@@ -72,3 +72,22 @@ class SecurityAlertSerializer(serializers.ModelSerializer):
             "event",
             "created_at",
         ]
+
+class AuditLogSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        source="user.username",
+        read_only=True,
+        default="System",
+    )
+
+    class Meta:
+        model = AuditLog
+        fields = [
+            "id",
+            "username",
+            "action",
+            "description",
+            "ip_address",
+            "created_at",
+        ]
+        read_only_fields = fields
