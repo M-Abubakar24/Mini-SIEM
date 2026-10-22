@@ -17,3 +17,16 @@ class IsAnalystOrAdmin(BasePermission):
             return True
 
         return user.is_staff or user.is_superuser
+
+class IsAdminUserOnly(BasePermission):
+    """
+    Only staff users and superusers may access audit logs.
+    """
+
+    def has_permission(self, request, view):
+        user = request.user
+        return bool(
+            user
+            and user.is_authenticated
+            and (user.is_staff or user.is_superuser)
+        )

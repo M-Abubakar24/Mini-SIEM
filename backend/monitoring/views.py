@@ -1,11 +1,13 @@
 
+from rest_framework import filters
+from .pagination import AuditLogPagination
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .permissions import IsAnalystOrAdmin
+from .permissions import IsAdminUserOnly, IsAnalystOrAdmin
 from .detection import analyze_event
 from .models import AuditLog, SecurityAlert, SecurityEvent
 from .serializers import (
@@ -98,7 +100,24 @@ class SecurityAlertStatusUpdateView(APIView):
         return Response(SecurityAlertSerializer(alert).data)
 
 
+from rest_framework import filters
+
+
+
 class AuditLogListView(generics.ListAPIView):
-    permission_classes = [IsAnalystOrAdmin]
+    permission_classes = [IsAdminUserOnly]
     serializer_class = AuditLogSerializer
     queryset = AuditLog.objects.select_related("user").all()
+
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = [
+        "action",
+        "description",
+        "ip_address",
+        "user__username",
+    ]
+    ordering_fields = ["created_at", "action"]
+    ordering = ["-created_at"]
+
+    pagination_class = AuditLogPagination
+
