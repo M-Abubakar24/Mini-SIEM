@@ -1,17 +1,21 @@
 # Mini-SIEM | Security Monitoring Dashboard
 
-A lightweight Security Information and Event Management (SIEM) project built with **Django REST Framework and React**. It records security events, detects potential brute-force login activity, generates severity-based alerts, and provides a dashboard for reviewing events and managing alerts.
+A lightweight, full-stack Security Information and Event Management (SIEM) project built with **Django REST Framework and React**. It records security events, detects potential brute-force login activity, generates severity-based alerts, and provides a dashboard for monitoring events and managing investigations.
 
 ## Features
 
-- **Security Event Logging** — Record login successes, login failures, and suspicious activity.
-- **Brute-Force Detection** — Identify repeated failed login attempts from the same source IP within a defined time window.
-- **Severity-Based Alerts** — Generate alerts with severity levels such as Low, Medium, High, and Critical.
-- **JWT Authentication** — Protect API endpoints using JSON Web Tokens.
-- **Security Dashboard** — View security events, alerts, and monitoring statistics.
-- **Searchable Event Logs** — Search events by username, source IP, event type, and message.
-- **Alert Management** — Update alert statuses to Open, Investigating, or Resolved.
-- **REST API** — Expose monitoring data through Django REST Framework endpoints.
+- **Security Event Logging:** Record login successes, login failures, and suspicious activity.
+- **Brute-Force Detection:** Detect repeated failed login attempts from the same source IP within a five-minute window.
+- **Severity-Based Alerts:** Generate alerts with Low, Medium, High, and Critical severity levels.
+- **JWT Authentication:** Protect API endpoints using JSON Web Tokens.
+- **Security Dashboard:** Visualize security events, alerts, and monitoring statistics.
+- **Searchable Event Logs:** Search security events using supported event fields.
+- **Alert Management:** Update alert statuses to Open, Investigating, or Resolved.
+- **Audit Logging:** Record security event creation and alert status changes.
+- **Role-Based Access Control:** Restrict sensitive operations and audit-log access according to user permissions.
+- **API Rate Limiting:** Apply request throttling to help limit excessive API requests and repeated login attempts.
+- **Security Headers:** Configure browser security headers, including content-type protection and clickjacking protection.
+- **Automated Tests:** Test detection logic, API validation, authentication, and permissions.
 
 ## Technology Stack
 
@@ -20,15 +24,13 @@ A lightweight Security Information and Event Management (SIEM) project built wit
 | Python | Backend development |
 | Django | Backend framework |
 | Django REST Framework | REST API |
-| Simple JWT | API authentication |
+| SimpleJWT | JWT authentication |
 | React | Frontend dashboard |
 | Vite | Frontend development server |
 | Axios | HTTP requests |
 | Recharts | Data visualization |
 | Lucide React | Dashboard icons |
-| SQLite | Local development database by default |
-
-> PostgreSQL integration is a planned improvement unless it has been configured and tested in your environment.
+| SQLite | Local development database |
 
 ## Project Structure
 
@@ -42,100 +44,79 @@ Mini-SIEM/
 │   │   ├── models.py
 │   │   ├── serializers.py
 │   │   ├── detection.py
+│   │   ├── permissions.py
+│   │   ├── pagination.py
 │   │   ├── views.py
-│   │   └── urls.py
+│   │   ├── urls.py
+│   │   └── tests.py
 │   ├── manage.py
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/
-│   │   ├── App.jsx
-│   │   ├── App.css
-│   │   └── index.css
-│   └── package.json
+│   ├── package.json
+│   └── ...
+├── docs/
+│   └── screenshots/
 ├── .gitignore
 └── README.md
 ```
+
+*Adjust the tree if your actual filenames or folders differ.*
 
 ## Getting Started
 
 ### Prerequisites
 
-Install the following:
-
 - Python
 - Node.js and npm
 - Git
 
-### 1. Clone the repository
+### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/M-Abubakar24/Mini-SIEM.git
 cd Mini-SIEM
 ```
 
-### 2. Set up the Django backend
+### 2. Set Up the Backend
 
-Open a terminal in the project directory:
-
-```bash
+```powershell
 cd backend
 python -m venv venv
-```
-
-Activate the virtual environment on Windows:
-
-```cmd
-venv\Scripts\activate
-```
-
-Install the backend dependencies:
-
-```bash
+.\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-```
-
-Apply database migrations:
-
-```bash
 python manage.py migrate
-```
-
-Create an administrator account:
-
-```bash
 python manage.py createsuperuser
-```
-
-Start the backend:
-
-```bash
 python manage.py runserver
 ```
 
-The backend will be available at:
+The backend runs at `http://127.0.0.1:8000/`.
 
-`http://127.0.0.1:8000/`
+### 3. Set Up the Frontend
 
-### 3. Set up the React frontend
+Open a second terminal from the project root:
 
-Open a second terminal:
-
-```bash
+```powershell
 cd frontend
 npm install
-npm install axios recharts lucide-react
 npm run dev
 ```
 
-Open the frontend URL displayed in your terminal, usually:
+Open the local URL printed by Vite, usually `http://localhost:5173/`.
 
-`http://localhost:5173/`
+The frontend dependencies should be declared in `package.json`; you generally do not need to reinstall Axios, Recharts, and Lucide React separately if they are already listed there.
 
-### 4. Sign in
+### 4. Authentication
 
-Use the Django superuser credentials created during backend setup to sign in to the dashboard.
+Create an administrator account using `python manage.py createsuperuser`. Sign in through the dashboard using the credentials supported by your frontend.
 
-The frontend obtains a JWT access token from the backend and uses it to request security events and alerts.
+The authentication endpoint returns JWT tokens. Protected API requests use the access token in this header:
+
+```http
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+Never commit real access tokens or passwords to GitHub.
 
 ## API Endpoints
 
@@ -143,42 +124,66 @@ The frontend obtains a JWT access token from the backend and uses it to request 
 |---|---|---|
 | POST | `/api/token/` | Obtain JWT access and refresh tokens |
 | POST | `/api/token/refresh/` | Refresh an access token |
-| GET | `/api/events/` | Retrieve security events |
-| POST | `/api/events/` | Create a security event |
+| GET, POST | `/api/events/` | List or create security events |
 | GET | `/api/alerts/` | Retrieve security alerts |
 | PATCH | `/api/alerts/<id>/status/` | Update an alert's status |
+| GET | `/api/audit-logs/` | Retrieve audit logs with admin permissions |
 
-Protected endpoints require a valid access token in the request header:
+The audit-log endpoint supports pagination, search, and ordering when configured in the backend. Example:
 
-```http
-Authorization: Bearer YOUR_ACCESS_TOKEN
+```text
+/api/audit-logs/?page_size=20
+/api/audit-logs/?search=ALERT_STATUS_CHANGED
+/api/audit-logs/?ordering=created_at
 ```
 
 ## Brute-Force Detection
 
-The current detection rule checks failed login events from the same source IP within a five-minute window.
+The demonstration detection rule checks failed login events from the same source IP within a five-minute window.
 
-- **Threshold:** Five failed login attempts
-- **Detection window:** Five minutes
-- **Alert severity:** High
+- **Threshold:** Five failed login attempts.
+- **Detection window:** Five minutes.
+- **Alert severity:** High.
 
-When the threshold is reached, the system generates a potential brute-force alert. This is a demonstration rule, not a guarantee that an attack has occurred.
+When the threshold is reached, the system can generate a potential brute-force alert. This rule is intended for demonstration and does not establish that an attack has definitely occurred.
+
+## Testing
+
+Run the backend checks from the `backend` directory:
+
+```bash
+python manage.py check
+python manage.py test monitoring
+```
+
+Build the frontend from the `frontend` directory:
+
+```bash
+npm run build
+```
 
 ## Security Considerations
 
-- Keep passwords, secret keys, access tokens, and `.env` files out of version control.
+- Keep secret keys, passwords, tokens, and `.env` files out of version control.
 - Use environment variables and a strong, private Django secret key outside local development.
 - Restrict CORS to trusted frontend origins.
 - Enforce appropriate authorization for alert updates and event ingestion.
 - Use HTTPS, secure deployment settings, and a production database before deployment.
 - Use synthetic test events when demonstrating detection rules.
+- Treat logs as potentially sensitive data and apply suitable access controls.
 
-**This project is intended for educational and portfolio purposes. It is not a production-ready SIEM.**
+**Disclaimer:** This project is intended for educational and portfolio purposes. It is not a production-ready SIEM.
 
 ## Roadmap
 
-- [ ] Add event and alert analytics charts.
 - [ ] Expand detection rules for suspicious activity.
-- [ ] Add stronger role-based access controls.
-- [ ] Improve automated API and detection-rule tests.
-- [ ] Integrate PostgreSQL
+- [ ] Add additional automated security tests.
+- [ ] Improve dashboard filtering and investigation workflows.
+- [ ] Configure and test PostgreSQL integration.
+- [ ] Prepare a secure deployment configuration.
+
+## Author
+
+**Muhammad Abubakar**
+
+GitHub: [M-Abubakar24](https://github.com/M-Abubakar24)
